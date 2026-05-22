@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or discussion
+    url: https://github.com/Boundera/fedramp-20x-toolkit/discussions
+    about: For general questions, ideas, or scope conversations — use Discussions, not Issues.
+  - name: Security report
+    url: https://github.com/Boundera/fedramp-20x-toolkit/security/advisories/new
+    about: For security vulnerabilities. Please do not open a public issue.
+  - name: FedRAMP 20x documentation
+    url: https://www.fedramp.gov/docs/20x/key-security-indicators/
+    about: Questions about the KSI specification itself belong at fedramp.gov.

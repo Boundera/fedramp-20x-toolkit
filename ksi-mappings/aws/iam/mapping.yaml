@@ -1,0 +1,321 @@
+# KSI-IAM → AWS evidence mapping
+#
+# Source: FRMR documentation v0.9.43-beta (2026-04-08)
+# Coverage: all 7 active indicators in the IAM family
+# Scope: AWS commercial + AWS GovCloud (US)
+#
+# Each indicator lists ONE canonical AWS evidence source. In practice, Boundera
+# collects 3-7 evidence sources per indicator across multiple AWS services;
+# this public mapping shows the minimum-viable demonstration evidence.
+
+family: IAM
+family_name: Identity and Access Management
+short_name: IAM
+frmr_version: "0.9.43-beta"
+frmr_source_url: https://www.fedramp.gov/docs/20x/key-security-indicators/identity-and-access-management/
+last_validated: "2026-05-22"
+cloud: aws
+theme: >
+  A secure cloud service offering will protect user data, control access, and
+  apply zero trust principles.
+
+indicators:
+
+  - id: KSI-IAM-MFA
+    fka: KSI-IAM-01
+    name: Enforcing Phishing-Resistant MFA
+    statement: >
+      Enforce multi-factor authentication (MFA) using methods that are difficult
+      to intercept or impersonate (phishing-resistant MFA) for all user
+      authentication.
+    nist_800_53_controls:
+      - ac-2
+      - ia-2
+      - ia-2.1
+      - ia-2.2
+      - ia-2.8
+      - ia-5
+      - ia-8
+      - sc-23
+    aws_evidence:
+      service: AWS IAM Identity Center
+      source_type: Identity Center MFA configuration
+      source_id: sso-admin:DescribeMfaDevices + identitystore:ListUsers
+      documentation_url: https://docs.aws.amazon.com/singlesignon/latest/userguide/mfa-types.html
+      summary: >
+        Identity Center MFA mode set to "AlwaysOn" with allowed factors
+        restricted to FIDO2 security keys and built-in WebAuthn authenticators.
+        TOTP and SMS must NOT be permitted — they are not phishing-resistant.
+      evidence_shape: |
+        instance_arn: arn:aws:sso:::instance/ssoins-EXAMPLE
+        mfa_mode: AlwaysOn
+        allowed_authentication_factors:
+          - FIDO2
+          - WebAuthn
+        sms_enabled: false
+        totp_enabled: false
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - Identity Center MFA set to "Allow" or "ContextAware" instead of "AlwaysOn"
+        - TOTP or SMS still in the allowed factors list (defeats phishing resistance)
+        - Root account in management account using virtual MFA instead of FIDO2 hardware key
+        - Federated identities via Entra ID / Okta but downstream MFA not enforced for AssumeRoleWithSAML
+
+  - id: KSI-IAM-APM
+    fka: KSI-IAM-02
+    name: Adopting Passwordless Methods
+    statement: >
+      Use secure passwordless methods for user authentication and authorization
+      when feasible, otherwise enforce strong passwords with MFA for
+      authentication.
+    nist_800_53_controls:
+      - ac-2
+      - ac-3
+      - ia-2.1
+      - ia-2.2
+      - ia-2.8
+      - ia-5.1
+      - ia-5.2
+      - ia-5.6
+      - ia-6
+    aws_evidence:
+      service: AWS IAM Identity Center
+      source_type: Authentication method configuration
+      source_id: sso-admin:DescribeAuthenticationMethods
+      documentation_url: https://docs.aws.amazon.com/singlesignon/latest/userguide/authconcept.html
+      summary: >
+        Identity Center configured to prefer passkey / WebAuthn authentication
+        with fallback to strong password + phishing-resistant MFA. Legacy
+        password-only authentication is disabled.
+      evidence_shape: |
+        instance_arn: arn:aws:sso:::instance/ssoins-EXAMPLE
+        primary_method: Passkey
+        password_only_login_enabled: false
+        password_policy:
+          minimum_length: 14
+          require_symbols: true
+          require_numbers: true
+          history_count: 24
+          max_age_days: 90
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - Long-lived IAM users with password-only console access (no MFA)
+        - Password policy weaker than NIST SP 800-63B AAL2 guidance
+        - Service accounts using passwords instead of IAM roles or Secrets Manager
+
+  - id: KSI-IAM-SNU
+    fka: KSI-IAM-03
+    name: Securing Non-User Authentication
+    statement: >
+      Enforce appropriately secure authentication methods for non-user accounts
+      and services.
+    nist_800_53_controls:
+      - ac-2
+      - ac-2.2
+      - ac-4
+      - ac-6.5
+      - ia-3
+      - ia-5.2
+      - ra-5.5
+    aws_evidence:
+      service: AWS IAM + AWS Secrets Manager
+      source_type: AWS Config managed rule
+      source_id: IAM_USER_NO_POLICIES_CHECK
+      documentation_url: https://docs.aws.amazon.com/config/latest/developerguide/iam-user-no-policies-check.html
+      summary: >
+        No IAM users have policies attached directly — workloads use IAM roles
+        with temporary credentials, and any shared secrets are rotated via
+        Secrets Manager. Long-lived access keys for human users are not used.
+      evidence_shape: |
+        config_rule_name: iam-user-no-policies-check
+        compliance_type: COMPLIANT
+        evaluation_results:
+          - resource_id: AIDAEXAMPLE1
+            resource_type: AWS::IAM::User
+            compliance: COMPLIANT
+        secrets_manager_rotation:
+          total_secrets: 47
+          rotation_enabled: 47
+          rotation_disabled: 0
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - IAM users with inline policies for "convenience" service access
+        - Access keys older than 90 days on non-user IAM principals
+        - Secrets Manager rotation disabled on database credentials
+        - EC2 instance roles that use access keys baked into AMIs
+
+  - id: KSI-IAM-JIT
+    fka: KSI-IAM-04
+    name: Authorizing Just-in-Time
+    statement: >
+      Use a least-privileged, role and attribute-based, and just-in-time
+      security authorization model for all user and non-user accounts and
+      services.
+    nist_800_53_controls:
+      - ac-2
+      - ac-2.1
+      - ac-2.3
+      - ac-3
+      - ac-5
+      - ac-6
+      - ac-6.1
+      - ac-6.5
+      - ia-4
+      - sc-23
+    aws_evidence:
+      service: AWS IAM Identity Center
+      source_type: Permission Set + Session Duration configuration
+      source_id: sso-admin:ListPermissionSets + sso-admin:DescribePermissionSet
+      documentation_url: https://docs.aws.amazon.com/singlesignon/latest/userguide/permissionsetsconcept.html
+      summary: >
+        Privileged Permission Sets have session_duration ≤ PT1H (one hour).
+        Standing access to administrative roles is replaced by request-based
+        elevation through Identity Center + an approval workflow.
+      evidence_shape: |
+        permission_set_arn: arn:aws:sso:::permissionSet/ssoins-EXAMPLE/ps-admin
+        name: AdministratorAccess
+        session_duration: PT1H
+        relay_state: null
+        managed_policies:
+          - arn:aws:iam::aws:policy/AdministratorAccess
+        request_workflow_enabled: true
+        active_grants_count: 0
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - Permission Set session_duration set to PT12H or PT24H (effectively standing access)
+        - Administrative groups with permanent assignment to privileged Permission Sets
+        - Lack of approval workflow — any user in the group can self-assume admin
+        - Break-glass roles without time-bound CloudWatch Logs alarm on use
+
+  - id: KSI-IAM-ELP
+    fka: KSI-IAM-05
+    name: Ensuring Least Privilege
+    statement: >
+      Persistently ensure that identity and access management employs measures
+      to ensure each user or device can only access the resources they need.
+    nist_800_53_controls:
+      - ac-2.5
+      - ac-3
+      - ac-4
+      - ac-6
+      - ac-17
+      - ia-2
+      - ia-3
+      - sc-4
+    aws_evidence:
+      service: AWS IAM Access Analyzer
+      source_type: Unused access findings
+      source_id: accessanalyzer:ListFindings (analyzer_type=UNUSED_ACCESS)
+      documentation_url: https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer-unused-access.html
+      summary: >
+        IAM Access Analyzer (unused access analyzer) runs continuously across
+        all accounts in the AWS Organization. Findings for unused permissions,
+        roles, and access keys are remediated within the FedRAMP SLA window
+        (Critical 30d / High 90d / Mod 180d / Low 365d).
+      evidence_shape: |
+        analyzer_arn: arn:aws:access-analyzer:us-gov-west-1:123456789012:analyzer/org-unused-access
+        analyzer_type: ORGANIZATION_UNUSED_ACCESS
+        last_analyzed_at: 2026-05-22T13:00:00Z
+        finding_summary:
+          unused_permissions: 12
+          unused_roles: 3
+          unused_access_keys: 0
+          unused_passwords: 1
+        findings_past_sla: 0
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - Access Analyzer enabled in only one region or one account
+        - Findings for unused permissions accumulating past SLA without POA&M entry
+        - Wildcard actions (e.g., `s3:*`) on resource policies not flagged because Analyzer scope is too narrow
+        - Federated roles with permanent permissions wider than the federated identity actually needs
+
+  - id: KSI-IAM-SUS
+    fka: KSI-IAM-06
+    name: Responding to Suspicious Activity
+    statement: >
+      Automatically disable or otherwise secure accounts with privileged access
+      in response to suspicious activity.
+    nist_800_53_controls:
+      - ac-2
+      - ac-2.1
+      - ac-2.3
+      - ac-2.13
+      - ac-7
+      - ps-4
+      - ps-8
+    aws_evidence:
+      service: Amazon GuardDuty + EventBridge + AWS Lambda
+      source_type: Automated remediation pipeline
+      source_id: guardduty:Findings (type starts with IAMUser/ or Stealth:IAMUser/) → EventBridge rule → Lambda function
+      documentation_url: https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-iam.html
+      summary: >
+        GuardDuty IAMUser finding types trigger an EventBridge rule routed to a
+        Lambda function that immediately disables the implicated principal
+        (detach all policies, deactivate access keys, end Identity Center
+        sessions) and pages the security on-call.
+      evidence_shape: |
+        finding_id: 12abc34d5e6f7g8h9i0j1k2l3m4n5o6p
+        finding_type: UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.InsideAWS
+        severity: 8.0
+        principal_id: AROAEXAMPLE1
+        detected_at: 2026-05-21T22:13:04Z
+        remediation:
+          lambda_invocation_id: 9z8y7x6w-5v4u-3t2s-1r0q-0p9o8n7m6l5k
+          actions_taken:
+            - DeactivatedAccessKey
+            - DetachedPolicies
+            - EndedIdentityCenterSession
+          completed_at: 2026-05-21T22:13:09Z
+          time_to_contain_seconds: 5
+        pager_alert_id: PD-INC-456789
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - GuardDuty enabled but no automated remediation pipeline — findings reviewed by humans only
+        - EventBridge rule covers some IAMUser finding types but not Stealth:* family
+        - Remediation Lambda lacks IAM permission to revoke active Identity Center sessions
+        - Mean time-to-contain not measured or not reported in monthly ConMon
+
+  - id: KSI-IAM-AAM
+    fka: KSI-IAM-07
+    name: Automating Account Management
+    statement: >
+      Securely manage the lifecycle and privileges of all accounts, roles, and
+      groups, using automation.
+    nist_800_53_controls:
+      - ac-2.2
+      - ac-2.3
+      - ac-2.13
+      - ac-6.7
+      - ia-4.4
+      - ia-12
+      - ia-12.2
+      - ia-12.3
+      - ia-12.5
+    aws_evidence:
+      service: AWS IAM Identity Center (SCIM provisioning)
+      source_type: SCIM provisioning audit
+      source_id: identitystore:ListUsers + Identity Center event source CloudTrail events
+      documentation_url: https://docs.aws.amazon.com/singlesignon/latest/userguide/scim-profile-saml.html
+      summary: >
+        Identity Center provisioned via SCIM from an authoritative HRIS-backed
+        IdP (Okta / Entra ID). User lifecycle events — create, update, group
+        change, terminate — are propagated to Identity Center within the
+        same business hour, with a CloudTrail audit trail.
+      evidence_shape: |
+        scim_endpoint: https://scim.us-gov-west-1.amazonaws.com/EXAMPLE/v2/
+        idp_source: Okta
+        last_sync_at: 2026-05-22T13:55:00Z
+        sync_latency_p95_minutes: 7
+        user_count: 142
+        terminated_users_pending_deprovisioning: 0
+        sample_termination_event:
+          user_id: 12345
+          terminated_in_idp_at: 2026-05-22T09:12:00Z
+          deprovisioned_in_identity_center_at: 2026-05-22T09:16:00Z
+          lag_minutes: 4
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - Identity Center managed manually (no SCIM) — terminated employees not deprovisioned for days
+        - IAM users created out-of-band of the IdP for "service accounts" — bypasses lifecycle automation
+        - Group membership changes in IdP not flowing to Identity Center due to attribute mapping bug
+        - No audit trail correlating IdP termination event to AWS deprovisioning timestamp

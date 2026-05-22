@@ -1,0 +1,301 @@
+# KSI-MLA → AWS evidence mapping
+#
+# Source: FRMR documentation v0.9.43-beta (2026-04-08)
+# Coverage: all 5 active indicators in the MLA family
+# Scope: AWS commercial + AWS GovCloud (US)
+#
+# Each indicator lists ONE canonical AWS evidence source. KSI-MLA-ALA has
+# different requirements at Low vs Moderate impact (varies_by_level) — both
+# variants are captured below.
+
+family: MLA
+family_name: Monitoring, Logging, and Auditing
+short_name: MLA
+frmr_version: "0.9.43-beta"
+frmr_source_url: https://www.fedramp.gov/docs/20x/key-security-indicators/monitoring-logging-and-auditing/
+last_validated: "2026-05-22"
+cloud: aws
+theme: >
+  A secure cloud service offering will monitor, log, and audit all important
+  events, activity, and changes.
+
+indicators:
+
+  - id: KSI-MLA-OSM
+    fka: KSI-MLA-01
+    name: Operating SIEM Capability
+    statement: >
+      Operate a Security Information and Event Management (SIEM) or similar
+      system(s) for centralized, tamper-resistant logging of events,
+      activities, and changes.
+    nist_800_53_controls:
+      - ac-17.1
+      - ac-20.1
+      - au-2
+      - au-3
+      - au-3.1
+      - au-4
+      - au-5
+      - au-6.1
+      - au-6.3
+      - au-7
+      - au-7.1
+      - au-8
+      - au-9
+      - au-11
+      - ir-4.1
+      - si-4.2
+      - si-4.4
+      - si-7.7
+    aws_evidence:
+      service: AWS Security Hub + Amazon OpenSearch Service
+      source_type: Centralized findings aggregation + log analytics
+      source_id: securityhub:GetFindings (cross-region aggregator) + opensearch index pattern
+      documentation_url: https://docs.aws.amazon.com/securityhub/latest/userguide/finding-aggregation.html
+      summary: >
+        Security Hub configured with a cross-region findings aggregator
+        delivering to a dedicated security account. CloudTrail organization
+        trail and CloudWatch Logs subscription filters stream to Amazon
+        OpenSearch Service for SIEM correlation. S3 buckets holding raw
+        evidence have Object Lock enabled (Compliance mode) for
+        tamper-resistance.
+      evidence_shape: |
+        security_hub_aggregator:
+          home_region: us-gov-west-1
+          aggregating_regions:
+            - us-gov-west-1
+            - us-gov-east-1
+          delivery_account: 222222222222
+          findings_last_24h: 18429
+        cloudtrail_organization_trail:
+          name: fedramp-org-trail
+          is_multi_region_trail: true
+          is_organization_trail: true
+          log_file_validation_enabled: true
+          s3_bucket: fedramp-evidence-logs-us-gov-west-1
+          s3_object_lock_mode: COMPLIANCE
+        opensearch_domain:
+          domain_name: siem-fedramp
+          ingestion_rate_eps_p95: 4520
+          retention_days: 365
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - CloudTrail trail exists but `log_file_validation_enabled` is false (no tamper detection)
+        - S3 bucket holding logs allows the same account's admins to delete objects (no Object Lock)
+        - Security Hub aggregator missing one of the regions where workloads run
+        - OpenSearch retention shorter than the FedRAMP audit retention requirement (1 year minimum, 3 years for some controls)
+
+  - id: KSI-MLA-RVL
+    fka: KSI-MLA-02
+    name: Reviewing Logs
+    statement: >
+      Persistently review and audit logs.
+    nist_800_53_controls:
+      - ac-2.4
+      - ac-6.9
+      - au-2
+      - au-6
+      - au-6.1
+      - si-4
+      - si-4.4
+    aws_evidence:
+      service: Amazon CloudWatch Logs Insights + Amazon EventBridge Scheduler
+      source_type: Scheduled log review queries
+      source_id: logs:StartQuery (scheduled via EventBridge) + audit_log table
+      documentation_url: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html
+      summary: >
+        Predefined CloudWatch Logs Insights queries run on a schedule (typically
+        daily for high-risk patterns, weekly for trend analysis). Queries cover
+        privileged action anomalies, failed authentications, root account use,
+        and policy changes. Each execution writes a record to an audit log
+        table with the query name, run time, result count, and reviewer
+        attestation.
+      evidence_shape: |
+        scheduled_queries:
+          - query_name: privileged-action-anomalies-daily
+            schedule: rate(1 day)
+            last_run: 2026-05-22T08:00:00Z
+            log_group: /aws/cloudtrail/fedramp-org
+            findings_count: 3
+            triaged_by: alice@example.gov
+            triage_completed_at: 2026-05-22T09:14:00Z
+          - query_name: root-account-use-daily
+            schedule: rate(1 day)
+            last_run: 2026-05-22T08:00:00Z
+            findings_count: 0
+          - query_name: iam-policy-changes-weekly
+            schedule: rate(7 days)
+            last_run: 2026-05-19T08:00:00Z
+            findings_count: 12
+            triaged_by: bob@example.gov
+            triage_completed_at: 2026-05-19T11:42:00Z
+        audit_log_retention_days: 365
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - Queries defined but no scheduled execution — runs only when someone remembers
+        - No reviewer attestation field — can't prove a human looked at the results
+        - Triage SLA (e.g., "high-severity findings reviewed within 24h") not measured
+        - Queries cover CloudTrail only — application and OS logs go unreviewed
+
+  - id: KSI-MLA-EVC
+    fka: KSI-MLA-05
+    name: Evaluating Configurations
+    statement: >
+      Persistently evaluate and test the configuration of machine-based
+      information resources, especially infrastructure as code.
+    nist_800_53_controls:
+      - ca-7
+      - cm-2.7
+      - cm-6
+      - sa-15
+    aws_evidence:
+      service: AWS Config Conformance Pack
+      source_type: AWS Config conformance pack — FedRAMP Moderate
+      source_id: config:DescribeConformancePackCompliance
+      documentation_url: https://docs.aws.amazon.com/config/latest/developerguide/conformance-pack-FedRAMP-Moderate.html
+      summary: >
+        The official AWS-managed `Operational-Best-Practices-for-FedRAMP-Moderate`
+        conformance pack deployed organization-wide via AWS Config aggregator.
+        Compliance percentage and non-compliant rule list are exported daily.
+        IaC pipelines (Terraform / CloudFormation) run `cfn-lint` and
+        `tfsec`/`checkov` in CI; merges blocked on critical findings.
+      evidence_shape: |
+        conformance_pack:
+          pack_name: Operational-Best-Practices-for-FedRAMP-Moderate
+          deployment_status: CREATE_COMPLETE
+          accounts_in_scope: 47
+          total_rules: 168
+          compliant_rule_count: 161
+          non_compliant_rule_count: 7
+          compliance_percentage: 95.83
+        ci_static_analysis:
+          last_run: 2026-05-22T11:30:00Z
+          tools:
+            - name: checkov
+              version: 3.2.x
+              findings_critical: 0
+              findings_high: 2
+              findings_medium: 11
+            - name: cfn-lint
+              version: 1.x
+              findings: 0
+          blocking_threshold: critical
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - Conformance pack deployed in one account only, not via Config aggregator
+        - Non-compliant rules accumulating past 30 days without POA&M entry
+        - IaC static analysis runs on commit but findings don't block merge
+        - Manual console changes drift from the IaC baseline because no CloudFormation drift detection
+
+  - id: KSI-MLA-LET
+    fka: KSI-MLA-07
+    name: Logging Event Types
+    statement: >
+      Maintain a list of information resources and event types that will be
+      logged, monitored, and audited, then do so.
+    nist_800_53_controls:
+      - ac-2.4
+      - au-2
+      - au-3
+      - au-12
+      - cm-6
+      - si-4
+    aws_evidence:
+      service: AWS CloudTrail + Amazon VPC Flow Logs
+      source_type: Multi-trail configuration covering management + data + insights events
+      source_id: cloudtrail:GetEventSelectors + ec2:DescribeFlowLogs
+      documentation_url: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html
+      summary: >
+        Three layers of event coverage are configured and documented in an
+        Event-Type Inventory: (1) management events via the organization
+        CloudTrail trail, (2) data events for in-scope S3 buckets and Lambda
+        functions, and (3) VPC Flow Logs at version 5 with TGW and
+        custom fields. The inventory is reviewed quarterly and on every
+        significant change.
+      evidence_shape: |
+        event_type_inventory:
+          version: 2026-Q2
+          last_reviewed_at: 2026-04-15
+          next_review_due: 2026-07-15
+          coverage:
+            management_events:
+              source: organization_cloudtrail
+              read_write_type: All
+              accounts_covered: 47
+            data_events:
+              s3_buckets:
+                total_in_scope: 23
+                with_data_events_enabled: 23
+              lambda_functions:
+                total_in_scope: 184
+                with_data_events_enabled: 184
+              dynamodb_tables:
+                total_in_scope: 12
+                with_data_events_enabled: 12
+            insights_events:
+              enabled: true
+              insight_selectors: [ApiCallRateInsight, ApiErrorRateInsight]
+            vpc_flow_logs:
+              version: 5
+              log_format_includes_custom_fields: true
+              traffic_type: ALL
+              destinations: [s3, cloudwatch_logs]
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - Event-Type Inventory document exists but is older than 90 days
+        - Data events enabled on production S3 buckets but not on Lambda functions handling FedRAMP data
+        - VPC Flow Logs at version 2 (default) — missing security-relevant fields added in versions 3-5
+        - New S3 buckets created without data events enabled (no preventive guardrail)
+
+  - id: KSI-MLA-ALA
+    fka: KSI-MLA-08
+    name: Authorizing Log Access
+    statement_varies_by_level: true
+    statements:
+      low: >
+        Optional: Use a least-privileged, role and attribute-based, and
+        just-in-time access authorization model for access to log data based
+        on organizationally defined data sensitivity.
+      moderate: >
+        Use a least-privileged, role and attribute-based, and just-in-time
+        access authorization model for access to log data based on
+        organizationally defined data sensitivity.
+    nist_800_53_controls:
+      - si-11
+    aws_evidence:
+      service: Amazon S3 + AWS KMS + IAM Identity Center
+      source_type: S3 bucket policy + KMS key policy + Identity Center Permission Set
+      source_id: s3:GetBucketPolicy + kms:GetKeyPolicy + sso-admin:DescribePermissionSet
+      documentation_url: https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-iam-policies.html
+      summary: >
+        The S3 bucket holding centralized audit logs is encrypted with a
+        dedicated KMS key. The bucket policy and KMS key policy together
+        require: (1) requests must come from an Identity Center Permission
+        Set explicitly listed as a log-reader role, (2) the role must have
+        been just-in-time assigned (session_duration ≤ PT4H), and (3) all
+        access events themselves are logged to a separate log-of-logs bucket.
+        At Low impact this is optional but recommended; at Moderate impact
+        it is required.
+      evidence_shape: |
+        log_bucket:
+          name: fedramp-audit-logs-us-gov-west-1
+          encryption: aws:kms
+          kms_key_arn: arn:aws:kms:us-gov-west-1:222222222222:key/log-access
+          object_lock_mode: COMPLIANCE
+          object_lock_retain_until_days: 1095
+        log_access_permission_set:
+          arn: arn:aws:sso:::permissionSet/ssoins-EXAMPLE/ps-log-reader
+          session_duration: PT4H
+          managed_policy_arns:
+            - arn:aws:iam::aws:policy/job-function/SecurityAuditor
+          active_assignments: 0
+        log_of_logs:
+          bucket: fedramp-log-access-audit-us-gov-west-1
+          retention_days: 1095
+          last_access_event: 2026-05-22T11:18:00Z
+        evaluated_at: 2026-05-22T14:00:00Z
+      common_gaps:
+        - Log bucket policy allows the account's `AdministratorAccess` role to read
+        - KMS key policy doesn't restrict `kms:Decrypt` to log-reader roles only
+        - Access to logs not itself logged — no log-of-logs bucket
+        - Permission Set session_duration set to PT12H, defeating just-in-time

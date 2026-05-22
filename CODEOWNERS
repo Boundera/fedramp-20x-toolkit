@@ -1,0 +1,27 @@
+# Code owners for fedramp-20x-toolkit
+#
+# Each line is a file pattern followed by one or more GitHub usernames or teams
+# that own that area. The last matching pattern wins.
+#
+# Replace placeholder usernames with real Boundera engineering accounts before
+# pushing to main. CODEOWNERS is enforced via branch protection in GitHub
+# Settings → Branches → Protect main → Require review from Code Owners.
+
+# Default owners for everything in the repo
+*                                   @Boundera/engineering
+
+# KSI mapping content — needs review from a compliance-savvy engineer
+/ksi-mappings/                      @Boundera/engineering @Boundera/compliance
+
+# OSCAL examples — schema-sensitive
+/examples/                          @Boundera/engineering
+
+# Validator CLI
+/tools/ksi-validator/               @Boundera/engineering
+
+# Documentation
+/docs/                              @Boundera/engineering
+*.md                                @Boundera/engineering
+
+# CI/CD and repo automation
+/.github/                           @Boundera/engineering
