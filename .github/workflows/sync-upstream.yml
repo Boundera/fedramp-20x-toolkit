@@ -1,0 +1,115 @@
+name: Sync upstream FedRAMP/rules
+
+# Pulls the latest FedRAMP/rules commit nightly. If anything changed,
+# runs schema validation. If validation passes, opens a PR with the
+# bumped submodule pin. A human reviews the diff before merging.
+#
+# If schema validation fails, opens (or updates) an issue so the team
+# knows the upstream changed in a breaking way and needs investigation.
+
+on:
+  schedule:
+    - cron: "17 4 * * *"  # 04:17 UTC nightly, off-peak
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Capture old submodule SHA
+        id: old
+        run: |
+          cd data/fedramp-rules
+          echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Update submodule to upstream HEAD
+        run: |
+          git submodule update --remote --recursive data/fedramp-rules
+
+      - name: Capture new submodule SHA
+        id: new
+        run: |
+          cd data/fedramp-rules
+          echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: No-op exit when nothing changed
+        if: steps.old.outputs.sha == steps.new.outputs.sha
+        run: |
+          echo "Upstream unchanged (${{ steps.old.outputs.sha }}). Nothing to do."
+          exit 0
+
+      - name: Validate new upstream against schema
+        id: validate
+        if: steps.old.outputs.sha != steps.new.outputs.sha
+        run: pnpm validate:schema
+        continue-on-error: true
+
+      - name: Open issue if validation failed
+        if: steps.old.outputs.sha != steps.new.outputs.sha && steps.validate.outcome == 'failure'
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: "[upstream-sync] Schema validation failed for FedRAMP/rules ${{ steps.new.outputs.sha }}"
+          content-filepath: /dev/stdin
+          labels: upstream-sync, schema-break
+        env:
+          ISSUE_BODY: |
+            Automated nightly sync found that the upstream `FedRAMP/rules`
+            data at commit `${{ steps.new.outputs.sha }}` no longer
+            validates against its own published schema.
+
+            Previous submodule SHA: `${{ steps.old.outputs.sha }}`
+            New submodule SHA:      `${{ steps.new.outputs.sha }}`
+
+            This is unusual and needs investigation. Either the upstream
+            shipped a schema change without bumping the schema, or our
+            validator needs updating.
+
+            **Do not merge any PR that bumps to this commit until this
+            is resolved.**
+
+      - name: Open PR if validation succeeded
+        if: steps.old.outputs.sha != steps.new.outputs.sha && steps.validate.outcome == 'success'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: sync/upstream-${{ steps.new.outputs.sha }}
+          delete-branch: true
+          title: "Bump FedRAMP/rules to ${{ steps.new.outputs.sha }}"
+          commit-message: "Bump FedRAMP/rules submodule to ${{ steps.new.outputs.sha }}"
+          body: |
+            Automated upstream sync.
+
+            **Submodule diff:** `${{ steps.old.outputs.sha }}` → `${{ steps.new.outputs.sha }}`
+
+            **Schema validation:** ✅ passed
+
+            **Next steps before merging:**
+
+            1. Skim the upstream diff: https://github.com/FedRAMP/rules/compare/${{ steps.old.outputs.sha }}...${{ steps.new.outputs.sha }}
+            2. Watch for changes to KSI/FRR statements — they invalidate our enrichments.
+            3. If statements changed, re-review affected enrichments and bump their `last_reviewed_upstream_version` before merging.
+            4. Run `pnpm validate` locally to confirm enrichments still pass.
+          labels: upstream-sync

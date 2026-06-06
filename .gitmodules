@@ -1,0 +1,5 @@
+[submodule "data/fedramp-rules"]
+	path = data/fedramp-rules
+	url = https://github.com/FedRAMP/rules.git
+	branch = main
+	shallow = true
