@@ -10,6 +10,8 @@
 
 A community resource for Cloud Service Providers preparing FedRAMP 20x submissions. Practitioner-grade mappings from AWS evidence sources to Key Security Indicators (KSIs), sample OSCAL packages, and a CLI to validate your KSI package before you submit.
 
+> 📚 **Atlas pipeline** — turns the FedRAMP/rules JSON + Boundera enrichments in this repo into rendered KSI pages at [boundera.io/fedramp-20x](https://boundera.io/fedramp-20x). See [ATLAS.md](ATLAS.md) for the build pipeline, authoring workflow, and the upstream-sync automation.
+
 This repository is maintained by [Boundera](https://boundera.io) and released under the MIT license. See [How this relates to Boundera](#how-this-relates-to-boundera) for the relationship between this toolkit and the commercial product.
 
 ---

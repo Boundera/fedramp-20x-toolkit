@@ -1,0 +1,34 @@
+{
+  "name": "fedramp-20x-toolkit",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Open-source Atlas data pipeline + KSI mappings for FedRAMP 20x.",
+  "license": "MIT",
+  "homepage": "https://github.com/Boundera/fedramp-20x-toolkit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Boundera/fedramp-20x-toolkit.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "validate:schema": "tsx tools/validate-schema.ts",
+    "validate:enrichments": "tsx tools/validate-enrichments.ts",
+    "validate:skew": "tsx tools/validate-skew.ts",
+    "validate": "pnpm validate:schema && pnpm validate:enrichments",
+    "scaffold": "tsx tools/scaffold-enrichment.ts",
+    "list:missing": "tsx tools/list-missing.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "ajv": "^8.16.0",
+    "ajv-formats": "^3.0.1",
+    "gray-matter": "^4.0.3",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0",
+    "yaml": "^2.5.0"
+  },
+  "packageManager": "pnpm@9.5.0"
+}

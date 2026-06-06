@@ -70,3 +70,8 @@ node_modules/
 # Validator scratch
 tools/ksi-validator/.scratch/
 tools/ksi-validator/output/
+
+# Atlas pipeline
+node_modules/
+.pnpm-store/
+*.tsbuildinfo

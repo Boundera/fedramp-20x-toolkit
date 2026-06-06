@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://boundera.io/schema/ksi-enrichment.schema.json",
+  "title": "Boundera KSI Enrichment Frontmatter Schema",
+  "description": "Validates the YAML frontmatter of enrichment files in enrichments/ksi/, enrichments/frr/, and enrichments/frd/. Body sections are validated separately by validate-enrichments.ts.",
+  "type": "object",
+  "required": ["id", "kind", "family", "last_reviewed_upstream_version", "last_reviewed_by", "last_reviewed_on", "confidence", "authors"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Must match the upstream entity ID exactly. KSI: KSI-FAMILY-CODE (e.g., KSI-MLA-EVC). FRR: PROCESS-SUBSET-KEY (e.g., VDR-CSO-123). FRD: FRD-XXX or term slug.",
+      "pattern": "^(KSI-[A-Z]{3}-[A-Z0-9]+|[A-Z]{3}-[A-Z]+-[A-Z0-9]+|FRD-[A-Z0-9-]+|[a-z0-9-]+)$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["ksi", "frr", "frd"]
+    },
+    "family": {
+      "type": "string",
+      "description": "KSI family or FRR process code (3 uppercase letters), or 'glossary' for FRD entries.",
+      "pattern": "^([A-Z]{3}|glossary)$"
+    },
+    "last_reviewed_upstream_version": {
+      "type": "string",
+      "description": "Format: YYYY-MM-DD-<short-commit-sha>. The FedRAMP/rules commit this enrichment was reviewed against.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}-[0-9a-f]{7,12}$"
+    },
+    "last_reviewed_by": {
+      "type": "string",
+      "format": "email"
+    },
+    "last_reviewed_on": {
+      "type": "string",
+      "format": "date"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low", "placeholder"]
+    },
+    "authors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "role": { "type": "string" },
+          "github": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "implementations": {
+      "type": "object",
+      "properties": {
+        "aws": { "$ref": "#/$defs/cloud_impl" },
+        "azure": { "$ref": "#/$defs/cloud_impl" },
+        "gcp": { "$ref": "#/$defs/cloud_impl" }
+      },
+      "additionalProperties": false
+    },
+    "sme_reviewed": { "type": "boolean" },
+    "sme_reviewer": { "type": "string" },
+    "review_notes_internal": { "type": "string" },
+    "related_ksis": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^KSI-[A-Z]{3}-[A-Z0-9]+$" }
+    },
+    "related_frrs": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-Z]{3}-[A-Z]+-[A-Z0-9]+$" }
+    },
+    "oss_action_checks_this": { "type": "boolean" },
+    "oss_action_section_anchor": { "type": "string" },
+    "deprecated": { "type": "boolean" },
+    "superseded_by": { "type": "string" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "cloud_impl": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "type": "string", "enum": ["complete", "partial", "placeholder"] },
+        "module_path": { "type": "string" },
+        "primary_services": { "type": "array", "items": { "type": "string" } },
+        "cost_signal": { "type": "string", "enum": ["low", "medium", "high"] },
+        "minimum_iam_permissions": { "type": "array", "items": { "type": "string" } },
+        "deployment_time_estimate": { "type": "string" },
+        "runtime_dependencies": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    }
+  }
+}
