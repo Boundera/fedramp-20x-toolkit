@@ -36,15 +36,13 @@ The most common failure: an admin policy attached directly to a human user durin
 
 The engine iterates IAM users and inspects `attached_policies` for `AdministratorAccess` or a bare `*` — any hit fails that user. This is per-resource: one over-privileged user out of fifty gives you 49/50, and names the user.
 
-The Prowler PR #11701 mapping for this KSI takes an org-guardrail angle on AWS (`organizations_scp_check_deny_regions`, `organizations_opt_out_ai_services_policy`); Boundera's per-user admin-policy signal is stricter and complements it — the closely related Prowler admin-policy checks are mapped under KSI-IAM-JIT instead.
-
 ## Implementation: Azure
 
-The engine iterates Entra users and fails any whose roles include `GlobalAdministrator` — standing tenant-wide admin is the Azure shape of the same problem. Independently checkable via Prowler: `entra_policy_guest_users_access_restrictions`, `entra_policy_guest_invite_only_for_admin_roles`, `keyvault_rbac_enabled`.
+The engine iterates Entra users and fails any whose roles include `GlobalAdministrator` — standing tenant-wide admin is the Azure shape of the same problem.
 
 ## Implementation: GCP
 
-The engine iterates project IAM bindings and fails any binding whose role is `roles/owner` or `roles/editor` — the primitive roles that grant broad project access and defeat least privilege. Independently checkable via Prowler: `compute_instance_default_service_account_in_use`, `compute_instance_default_service_account_in_use_with_full_api_access` (the default compute SA carries Editor, so it usually surfaces both ways).
+The engine iterates project IAM bindings and fails any binding whose role is `roles/owner` or `roles/editor` — the primitive roles that grant broad project access and defeat least privilege.
 
 ## Evidence example
 
@@ -75,4 +73,3 @@ What you bring: connected AWS/Azure/GCP and Okta, plus the remediation itself (m
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` → `KSI.IAM.indicators["KSI-IAM-ELP"]`
 - NIST SP 800-53 Rev 5: AC-2(5), AC-2(6), AC-3, AC-4, AC-6, AC-12, AC-14, AC-17, AC-17(1), AC-17(2), AC-17(3), AC-20, AC-20(1), CM-2(7), CM-9, IA-2, IA-3, IA-4, IA-4(4), IA-5(2), IA-5(6), IA-11, PS-2, PS-3, PS-4, PS-5, PS-6, SC-4, SC-20, SC-21, SC-22, SC-23, SC-39, SI-3
-- Prowler FedRAMP 20x mapping (prowler-cloud/prowler#11701, unmerged): per-provider check IDs cited above

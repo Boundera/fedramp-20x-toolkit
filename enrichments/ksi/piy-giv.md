@@ -62,11 +62,6 @@ the failure message tells you which of the two problems you have — zero
 resources discovered (fix credentials/permissions/regions) versus resources
 discovered but all excluded from the boundary (fix your boundary curation).
 
-Independently checkable via Prowler: `config_recorder_all_regions_enabled`
-(AWS Config as an authoritative recording source in every region),
-`ec2_instance_managed_by_ssm`, and
-`organizations_account_part_of_organizations`.
-
 ## Implementation: Azure
 
 Azure uses the identical condition through the `azure:auth_boundary`
@@ -79,21 +74,12 @@ in the failure message.
 Connect the Azure connector with read-only access to the subscriptions in
 your boundary, scan, and retain in-boundary resources.
 
-Independently checkable via Prowler:
-`defender_assessments_vm_endpoint_protection_installed` (Prowler's Azure
-mapping for this KSI is thin — one check — so treat it as a supplement, not
-a substitute for the boundary inventory itself).
-
 ## Implementation: GCP
 
 GCP is evaluated by the `gcp:auth_boundary` signal with the same
 `in_boundary_count > 0` condition over the GCP integration's boundary
 summary. Connect the GCP connector with read-only access to the projects in
 your boundary, scan, and retain in-boundary resources.
-
-Independently checkable via Prowler: `iam_cloud_asset_inventory_enabled`
-(Cloud Asset Inventory is GCP's native authoritative inventory source) and
-`iam_organization_essential_contacts_configured`.
 
 ## Evidence example
 
@@ -177,5 +163,3 @@ per cloud, service breakdowns, and the IaC detection across your repos.
   → `KSI.PIY.indicators["KSI-PIY-GIV"]`
 - NIST SP 800-53 Rev 5: CM-2(2), CM-7(5), CM-8, CM-8(1), CM-12, CM-12(1),
   CP-2(8)
-- Prowler KSI mappings: prowler-cloud/prowler#11701 (unmerged, aligned
-  2026.06.24.01)

@@ -34,15 +34,15 @@ The most common failure: a standing backlog of open high/critical findings that 
 
 ## Implementation: AWS
 
-The engine treats GuardDuty as the AWS residual-risk monitor: detectors (`aws:guardduty:detectors`) pass when `enabled_in_account` is true, evaluated as a single capability check (one enabled detector is enough). The Prowler PR maps no AWS checks to this KSI, so there is no Prowler cross-check to cite.
+The engine treats GuardDuty as the AWS residual-risk monitor: detectors (`aws:guardduty:detectors`) pass when `enabled_in_account` is true, evaluated as a single capability check (one enabled detector is enough).
 
 ## Implementation: Azure
 
-Microsoft Defender is the Azure equivalent: secure-score rows (`azure:security:secure_scores`) pass when `defender_active` is true for the subscription, again as a single capability check. The Prowler PR maps no Azure checks to this KSI.
+Microsoft Defender is the Azure equivalent: secure-score rows (`azure:security:secure_scores`) pass when `defender_active` is true for the subscription, again as a single capability check.
 
 ## Implementation: GCP
 
-The engine has no GCP-native signal for KSI-SVC-PRR — this is a real coverage difference, not an omission in the write-up. Residual-risk evidence for GCP-hosted workloads comes through the provider-neutral scanner signals below (Qualys and CrowdStrike agents evaluate hosts wherever they run, and the SCM signals are cloud-independent). The Prowler PR maps no GCP checks to this KSI either.
+The engine has no GCP-native signal for KSI-SVC-PRR — this is a real coverage difference, not an omission in the write-up. Residual-risk evidence for GCP-hosted workloads comes through the provider-neutral scanner signals below (Qualys and CrowdStrike agents evaluate hosts wherever they run, and the SCM signals are cloud-independent).
 
 ## Evidence example
 
@@ -75,4 +75,3 @@ Boundera evaluates KSI-SVC-PRR from the tools you already run: `aws:guardduty` a
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.SVC.indicators["KSI-SVC-PRR"]`)
 - NIST SP 800-53 Rev 5: SC-4
-- Prowler FedRAMP 20x mappings: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

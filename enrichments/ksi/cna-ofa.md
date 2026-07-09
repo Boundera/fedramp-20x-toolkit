@@ -49,8 +49,6 @@ Org-level checks (any-pass — one is enough):
 - **AWS Backup** — at least one backup plan with rules configured.
 - **ELBv2** — at least one load balancer exists.
 
-Independently checkable via the upstream Prowler 20x mapping: `rds_instance_multi_az`, `autoscaling_group_multiple_az`, `dynamodb_tables_pitr_enabled`, `elbv2_is_in_multiple_az`.
-
 ## Implementation: Azure
 
 Per-resource checks:
@@ -64,16 +62,12 @@ Org-level check (any-pass):
 
 - **Recovery Services vault** — a vault with backup-protected items or backup policies.
 
-Independently checkable via the upstream Prowler 20x mapping: `vm_backup_enabled`.
-
 ## Implementation: GCP
 
 Per-resource checks:
 
 - **Cloud SQL** — automated backups enabled; and availability type is `REGIONAL` rather than `ZONAL` (two separate assertions).
 - **Cloud Storage** — versioning or a lifecycle policy configured; and soft-delete enabled (two separate assertions).
-
-The upstream Prowler 20x mapping (prowler-cloud/prowler#11701) currently maps no GCP checks to this KSI, so there is no independent Prowler cross-check on GCP — the engine's signals above are the coverage.
 
 ## Evidence example
 
@@ -102,4 +96,3 @@ Boundera evaluates KSI-CNA-OFA per resource across AWS, Azure, and GCP — twent
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.CNA.indicators["KSI-CNA-OFA"]`)
 - NIST SP 800-53 Rev 5: none mapped upstream (the FRMR entry lists no controls for this indicator)
-- Prowler 20x KSI mapping: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

@@ -38,8 +38,6 @@ The engine inspects every CloudTrail trail (`aws:cloudtrail:trails` evidence) an
 
 One engine behavior worth knowing: connector scans can include synthetic per-region CloudTrail rows for regions with no local trail. When a real multi-region trail is actively logging, the engine suppresses those placeholder rows so they do not pollute the score; when **no** multi-region trail is logging, they remain visible — which is exactly when you want the per-region gap surfaced. Practical takeaway: run one organization or multi-region trail with logging on.
 
-Independently checkable via Prowler: `config_recorder_all_regions_enabled`, `inspector2_is_enabled`.
-
 ## Implementation: Azure
 
 The engine inspects Monitor diagnostic settings (`azure:monitor:diagnostics_settings` evidence). A setting passes only when both are true:
@@ -49,13 +47,9 @@ The engine inspects Monitor diagnostic settings (`azure:monitor:diagnostics_sett
 
 A diagnostic setting that only ships metrics, only covers non-audit categories, or has no destination fails as "not capturing logs."
 
-Independently checkable via Prowler: `monitor_diagnostic_settings_exists`, `monitor_diagnostic_setting_with_appropriate_categories`.
-
 ## Implementation: GCP
 
 The engine inspects Cloud Logging sinks (`gcp:logging:sinks` evidence) and passes a sink only when `enabled` is true. A defined-but-disabled sink fails as "not enabled."
-
-Independently checkable via Prowler: `logging_sink_created`, `iam_audit_logs_enabled`.
 
 ## Evidence example
 
@@ -85,4 +79,3 @@ What stays with you: the logged-event-types inventory and its recurring review. 
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` → `KSI.MLA.indicators["KSI-MLA-LET"]`
 - NIST SP 800-53 Rev 5: AC-2(4), AC-6(9), AC-17(1), AC-20(1), AU-2, AU-7(1), AU-12, SI-4(4), SI-4(5), SI-7(7)
-- Prowler KSI mapping: prowler-cloud/prowler#11701 (checks cited above)

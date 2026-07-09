@@ -39,22 +39,16 @@ The most common way CSPs fail it: perimeter tooling exists in the primary cloud 
 - **GuardDuty** — a detector enabled (account flag or detector status).
 - **EKS** — clusters with private endpoint access enabled; a public API endpoint is flagged as increasing attack surface.
 
-Independently checkable via the upstream Prowler 20x mapping: `eks_cluster_not_publicly_accessible`, `ec2_instance_public_ip`, `vpc_peering_routing_tables_with_least_privilege`.
-
 ## Implementation: Azure
 
 - **WAF** — WAF protection active in the subscription (Application Gateway WAF or Front Door WAF).
 - **Defender for Cloud** — active for the subscription.
 - **AKS** — clusters must have a network policy configured; without one, pod-level segmentation cannot be enforced.
 
-Independently checkable via the upstream Prowler 20x mapping: `aks_clusters_public_access_disabled`, `storage_default_network_access_rule_is_denied`.
-
 ## Implementation: GCP
 
 - **Cloud Armor** — security policies present in the project (the WAF/DDoS layer).
 - **GKE** — clusters with network policy enabled, for pod-level segmentation.
-
-Independently checkable via the upstream Prowler 20x mapping: `cloudsql_instance_public_access`, `compute_instance_public_ip`.
 
 ## Evidence example
 
@@ -90,4 +84,3 @@ Boundera evaluates KSI-CNA-MAT automatically across AWS, Azure, and GCP with pro
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.CNA.indicators["KSI-CNA-MAT"]`)
 - NIST SP 800-53 Rev 5: AC-17(3), AC-18(1), AC-18(3), AC-20(1), CA-9, SC-7(3), SC-7(4), SC-7(5), SC-7(8), SC-8, SC-10, SI-10, SI-11, SI-16
-- Prowler 20x KSI mapping: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

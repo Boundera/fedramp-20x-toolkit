@@ -35,16 +35,12 @@ The most common way CSPs fail it: outbound. Teams lock down inbound carefully an
 
 ## Implementation: AWS
 
-Per-security-group assertions (the engine parses both PascalCase Prowler output and snake_case normalized rules):
-
 - **No world-open inbound** — no ingress rule with a `0.0.0.0/0` or `::/0` CIDR.
 - **No sensitive-port exposure** — no world-open rule whose port range covers a sensitive port; protocol `-1` (all protocols) counts as all ports.
 - **Default SG locked** — security groups named `default` must have zero inbound rules.
 - **Explicit egress restriction** — fails when an egress rule allows all protocols to `0.0.0.0/0`.
 
 Org-level (any-pass): **AWS Network Firewall** deployed.
-
-Independently checkable via the upstream Prowler 20x mapping: `ec2_securitygroup_allow_ingress_from_internet_to_any_port`, `ec2_securitygroup_default_restrict_traffic`, `ec2_networkacl_allow_ingress_any_port`.
 
 ## Implementation: Azure
 
@@ -56,8 +52,6 @@ Per-NSG assertions:
 
 Org-level (any-pass): **Azure Firewall** active in the subscription (the network-level IDS/IPS leg).
 
-Independently checkable via the upstream Prowler 20x mapping: `network_ssh_internet_access_restricted`, `network_rdp_internet_access_restricted`.
-
 ## Implementation: GCP
 
 Per-firewall-rule assertions:
@@ -67,8 +61,6 @@ Per-firewall-rule assertions:
 - **Explicit egress control** — the engine looks for `EGRESS`-direction firewall rules; having any is itself evidence of deliberate egress control.
 
 Org-level (any-pass): **Cloud IDS** endpoints present in the project.
-
-Independently checkable via the upstream Prowler 20x mapping: `compute_firewall_ssh_access_from_the_internet_allowed`, `compute_firewall_rdp_access_from_the_internet_allowed`, `compute_network_default_in_use`.
 
 ## Evidence example
 
@@ -99,4 +91,3 @@ Boundera evaluates KSI-CNA-RNT automatically and per-resource across all three c
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.CNA.indicators["KSI-CNA-RNT"]`)
 - NIST SP 800-53 Rev 5: AC-17(3), CA-9, CM-7(1), SC-7(5), SI-8
-- Prowler 20x KSI mapping: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

@@ -39,19 +39,13 @@ The engine inspects two AWS resource types on every scan:
 - **AWS Backup plans** (`aws:backup:backup_plans`) — each discovered plan must carry backup rules (schedule + lifecycle). A plan record with no rules and no plan ID fails with "has no backup rules configured". Centralize backups in AWS Backup rather than per-service snapshot scripts so the plan, its rules, and its selections are inspectable in one place.
 - **S3 buckets** (`aws:s3:buckets`) — every bucket must have versioning enabled. Versioning is the point-in-time durability mechanism the engine accepts for object storage; a bucket with versioning suspended or never enabled fails individually.
 
-Independently checkable via Prowler: `rds_instance_backup_enabled`, `efs_have_backup_enabled`, `dynamodb_tables_pitr_enabled`, `redshift_cluster_automated_snapshot`.
-
 ## Implementation: Azure
 
 The engine inspects storage accounts (`azure:storage:storage_accounts`): each account passes if blob soft-delete is enabled **or** a backup policy protects it. An account with neither fails with "has no soft-delete or backup policy". Enable blob soft-delete at the account level, and use Azure Backup vault policies for VM and file-share workloads.
 
-Independently checkable via Prowler: `vm_backup_enabled`, `storage_ensure_soft_delete_is_enabled`, `storage_geo_redundant_enabled`, `vm_sufficient_daily_backup_retention_period`.
-
 ## Implementation: GCP
 
 The engine inspects Cloud Storage buckets (`gcp:cloudstorage:buckets`): each bucket passes if object versioning is enabled **or** lifecycle rules are configured. A bucket with neither fails with "has no versioning or lifecycle policy". Turn on versioning for buckets holding recoverable data, and pair it with lifecycle rules so noncurrent versions age out on a schedule you chose against your RPO — not by accident.
-
-Independently checkable via Prowler: `cloudsql_instance_automated_backups`, `cloudstorage_bucket_versioning_enabled`, `cloudstorage_bucket_lifecycle_management_enabled`.
 
 ## Evidence example
 
@@ -84,4 +78,3 @@ What still needs you: connect the AWS, Azure, and GCP connectors for every accou
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` → `KSI.RPL.indicators["KSI-RPL-ABO"]`
 - NIST SP 800-53 Rev 5: CM-2(3), CP-6, CP-9, CP-10, CP-10(2), SI-12
-- Prowler KSI mapping (prowler-cloud/prowler#11701, unmerged, aligned 2026.06.24.01)
