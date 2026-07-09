@@ -2,9 +2,9 @@
 id: KSI-MLA-EVC
 kind: ksi
 family: MLA
-last_reviewed_upstream_version: "2026-06-04-c40b7d7"
+last_reviewed_upstream_version: "2026-07-06-7227d7f"
 last_reviewed_by: eddy@boundera.io
-last_reviewed_on: "2026-06-05"
+last_reviewed_on: "2026-07-09"
 confidence: high
 
 authors:
