@@ -41,20 +41,16 @@ AWS carries the most assertions because the credential report exposes standing-c
 - **Access keys** — every active key rotated *and* used within 90 days; a key nobody uses is standing privilege with no owner. Users with no active keys pass outright.
 - **Key accumulation** — both key slots active simultaneously fails; the second slot is for rotation, not for a spare credential.
 
-Independently checkable via Prowler: `iam_policy_attached_only_to_group_or_roles`, `iam_aws_attached_policy_no_administrative_privileges`, `iam_inline_policy_no_administrative_privileges`, `iam_no_custom_policy_permissive_role_assumption`.
-
 ## Implementation: Azure
 
 - **Entra users** — no Global Administrator role: standing tenant-wide privilege is the opposite of just-in-time; PIM-eligible (not permanently active) assignments are the target state, evidenced through the manual upload below.
 
-Known engine gap, stated plainly: a pillar-3 signal for Azure managed identities is deliberately omitted because the connector data (VM and Function App identity fields) is not yet verifiable — Azure JIT tooling (PIM) is covered by the manual evidence path instead. Independently checkable via Prowler: `entra_global_admin_in_less_than_five_users`, `iam_subscription_roles_owner_custom_not_created`, `iam_role_user_access_admin_restricted`.
+Known engine gap, stated plainly: a pillar-3 signal for Azure managed identities is deliberately omitted because the connector data (VM and Function App identity fields) is not yet verifiable — Azure JIT tooling (PIM) is covered by the manual evidence path instead.
 
 ## Implementation: GCP
 
 - **Project bindings** — no `roles/owner` or `roles/editor` at project level (pillar 1).
 - **Service accounts** — no `USER_MANAGED` keys (pillar 3): a user-managed SA key is a non-expiring credential, the direct opposite of just-in-time; workload identity or impersonation with Google-rotated keys passes.
-
-Independently checkable via Prowler: `iam_no_service_roles_at_project_level`, `iam_sa_no_administrative_privileges`, `iam_role_sa_enforce_separation_of_duties`.
 
 ## Evidence example
 
@@ -87,4 +83,3 @@ Boundera automates the connector side of KSI-IAM-JIT across all three clouds and
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` → `KSI.IAM.indicators["KSI-IAM-JIT"]`
 - NIST SP 800-53 Rev 5: AC-2, AC-2(1), AC-2(2), AC-2(3), AC-2(4), AC-2(6), AC-3, AC-4, AC-5, AC-6, AC-6(1), AC-6(2), AC-6(5), AC-6(7), AC-6(9), AC-6(10), AC-7, AC-20(1), AC-17, AU-9(4), CM-5, CM-7, CM-7(2), CM-7(5), CM-9, IA-4, IA-4(4), IA-7, PS-2, PS-3, PS-4, PS-5, PS-6, PS-9, RA-5(5), SC-2, SC-23, SC-39
-- Prowler FedRAMP 20x mapping (prowler-cloud/prowler#11701, unmerged): per-provider check IDs cited above

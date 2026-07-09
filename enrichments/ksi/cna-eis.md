@@ -47,8 +47,6 @@ The engine accepts either of two services on GCP:
 - **Security Command Center** — SCC enabled on the project (actively scanning project resources), or
 - **Cloud Asset Inventory** — CAI accessible for the project, accepted as an alternative because it proves configuration state is being monitored.
 
-Note: the upstream Prowler 20x mapping (prowler-cloud/prowler#11701) maps zero checks to KSI-CNA-EIS on every provider, so there is currently no independent Prowler cross-check for this indicator.
-
 ## Evidence example
 
 Passing automated evidence contains one or more of these signals. Each is an any-pass check — one conforming resource satisfies the signal — and each signal with evidence contributes one point to the score:

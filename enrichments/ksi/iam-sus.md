@@ -37,19 +37,13 @@ The most common failure: detection exists but nothing shows the *response* is au
 - **GuardDuty** — at least one detector with status `ENABLED` (any-pass across detectors); a suspended detector fails.
 - **Security Hub** — active (not `DISABLED`) so findings aggregate into one place a response workflow can key off.
 
-Independently checkable via Prowler: `guardduty_is_enabled`, `guardduty_no_high_severity_findings`.
-
 ## Implementation: Azure
 
 - **Security Defaults** — `isEnabled` true brings Smart Lockout and risk-based sign-in protections, which is the engine's current Azure signal for automated account-securing behavior. Known gap, stated openly: per-service Defender for Cloud pricing-tier data is not yet available through the connector, so a stricter Defender-for-Identity signal is deferred until it is.
 
-Independently checkable via Prowler: `defender_ensure_wdatp_is_enabled` (the PR's sole Azure mapping for this KSI).
-
 ## Implementation: GCP
 
 - **Security Command Center** — must be enabled on the project; SCC is GCP's threat-detection layer (Event Threat Detection findings, anomalous IAM grants, credential misuse).
-
-The Prowler PR #11701 mapping has zero GCP checks for this KSI — Boundera's `gcp:scc` signal covers ground the PR does not.
 
 ## Evidence example
 
@@ -81,4 +75,3 @@ Boundera verifies the standing infrastructure for KSI-IAM-SUS automatically acro
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` → `KSI.IAM.indicators["KSI-IAM-SUS"]`
 - NIST SP 800-53 Rev 5: AC-2, AC-2(1), AC-2(3), AC-2(13), AC-7, PS-4, PS-8
-- Prowler FedRAMP 20x mapping (prowler-cloud/prowler#11701, unmerged): per-provider check IDs cited above

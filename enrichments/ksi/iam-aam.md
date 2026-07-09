@@ -41,8 +41,6 @@ The engine reads your IAM inventory directly:
 - **IAM roles** — each role needs identity metadata plus either an assume-role trust policy or a management signal: a `ManagedBy`/`managed_by` tag, service-linked provenance (`:role/aws-service-role/`, `AWSServiceRole*`), or an Identity Center reserved role (`AWSReservedSSO_*`).
 - **IAM groups** — a group passes only if it has members or attached/inline policies; an empty, policy-less group has no management evidence.
 
-Independently checkable via Prowler: `iam_user_console_access_unused`, `iam_user_accesskey_unused`, `iam_no_root_access_key`.
-
 ## Implementation: Azure
 
 - **Entra users** — `accountEnabled` must be true; a disabled user is flagged so you finish deprovisioning it rather than leaving it dormant.
@@ -50,13 +48,9 @@ Independently checkable via Prowler: `iam_user_console_access_unused`, `iam_user
 - **Role assignments** — every assignment must have complete scope, role, and principal metadata; an assignment you cannot attribute is an assignment you cannot manage.
 - **Custom roles** — must define permissions (actions) and assignable scopes.
 
-The Prowler PR #11701 mapping for Azure on this KSI is thin (a single App Service check, `app_ensure_auth_is_set_up`); Boundera's Entra signals above go beyond that mapping.
-
 ## Implementation: GCP
 
 - **Service accounts** — `disabled` must not be true. A disabled service account left in place is the same deprovisioning debt as a disabled Entra user: confirm it can be deleted, then delete it.
-
-Independently checkable via Prowler: `iam_service_account_unused`.
 
 ## Evidence example
 
@@ -93,4 +87,3 @@ What you bring: connect the cloud, IdP, endpoint, and ticketing connectors; tag 
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` → `KSI.IAM.indicators["KSI-IAM-AAM"]`
 - NIST SP 800-53 Rev 5: AC-2(2), AC-2(3), AC-2(13), AC-6(7), IA-4(4), IA-12, IA-12(2), IA-12(3), IA-12(5)
-- Prowler FedRAMP 20x mapping (prowler-cloud/prowler#11701, unmerged): per-provider check IDs cited above

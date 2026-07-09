@@ -37,20 +37,14 @@ The most common failure: a "service user" created years ago with an access key t
 - **IAM roles** — the existence of well-formed roles (ARN + name) proves the role-assumption path services should use; this is any-pass, since one healthy role demonstrates the mechanism.
 - **Credential report** — users *without* console passwords are treated as service accounts: any active access key must have been rotated within 90 days. Console users pass here — they are evaluated by the user-authentication KSIs instead, so the two never double-count.
 
-Independently checkable via Prowler: `iam_rotate_access_key_90_days`, `iam_user_two_active_access_key`.
-
 ## Implementation: Azure
 
 - **Role assignments** — assignments whose principal is a `ServicePrincipal` or `ManagedIdentity` must be scoped below root: a machine identity bound at `/` has unrestricted reach. User and group assignments pass through untouched — they are out of scope for non-user authentication.
-
-Independently checkable via Prowler: `app_register_with_identity`, `app_function_identity_is_configured`.
 
 ## Implementation: GCP
 
 - **Service account keys** — no `USER_MANAGED` keys on any service account; those are the long-lived static credentials this KSI exists to eliminate. No keys at all (workload identity / impersonation) or only Google-rotated system keys passes.
 - **Dedicated service accounts** — at least one non-default service account must exist (any-pass): a project whose only SA is `*-compute@developer.gserviceaccount.com` is running everything as the auto-provisioned default.
-
-Independently checkable via Prowler: `iam_sa_no_user_managed_keys`, `iam_sa_user_managed_key_rotate_90_days`, `apikeys_key_rotated_in_90_days`.
 
 ## Evidence example
 
@@ -81,4 +75,3 @@ What you bring: connected AWS/Azure/GCP, plus the rotation and workload-identity
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` → `KSI.IAM.indicators["KSI-IAM-SNU"]`
 - NIST SP 800-53 Rev 5: AC-2, AC-2(2), AC-4, AC-6(5), IA-3, IA-5(2), RA-5(5)
-- Prowler FedRAMP 20x mapping (prowler-cloud/prowler#11701, unmerged): per-provider check IDs cited above

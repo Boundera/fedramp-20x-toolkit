@@ -57,8 +57,6 @@ The engine inspects role assignments and custom role definitions:
 
 The engine inspects Cloud Resource Manager IAM bindings: a binding fails when it grants a broad log-reader role — `roles/logging.viewer`, `roles/logging.privateLogViewer`, `roles/storage.objectViewer`, `roles/bigquery.dataViewer`, or `roles/bigquery.metadataViewer` — to `allUsers` or `allAuthenticatedUsers`. All other bindings are excluded from scoring.
 
-Note on independent tooling: prowler-cloud/prowler#11701 maps **no** AWS, Azure, or GCP checks to this KSI (only an M365 admin-portal check), so there is no off-the-shelf Prowler coverage to lean on here — the correlation logic above is custom.
-
 ## Evidence example
 
 A passing evaluation contains, per signal:
@@ -93,4 +91,3 @@ Two things remain yours: connect the cloud accounts in your boundary, and upload
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` → `KSI.MLA.indicators["KSI-MLA-ALA"]`
 - NIST SP 800-53 Rev 5: SI-11
-- Prowler KSI mapping (prowler-cloud/prowler#11701): no AWS/Azure/GCP checks mapped to this KSI

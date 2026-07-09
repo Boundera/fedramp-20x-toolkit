@@ -38,8 +38,6 @@ The most common way CSPs fail it: the protections exist and the dashboards are g
 - **WAFv2** — at least one web ACL configured (the traffic-filtering layer).
 - **Network Firewall** — a named Network Firewall deployment.
 
-Independently checkable via the upstream Prowler 20x mapping: `elbv2_waf_acl_attached`. Note the upstream mapping has AWS checks only for this KSI — it maps no Azure or GCP checks, so the engine's signals below are the cross-provider coverage.
-
 ## Implementation: Azure
 
 - **WAF** — WAF/DDoS protection active in the subscription (Application Gateway WAF or Front Door WAF).
@@ -85,4 +83,3 @@ Boundera automates the protection-existence half of KSI-CNA-RVP across all three
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.CNA.indicators["KSI-CNA-RVP"]`)
 - NIST SP 800-53 Rev 5: SC-5, SI-8, SI-8(2)
-- Prowler 20x KSI mapping: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

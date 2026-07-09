@@ -33,7 +33,7 @@ The most common failure: HTTPS is available on an endpoint but not enforced — 
 
 ## Implementation: AWS
 
-Per-resource authenticity signals: S3 bucket policies must deny insecure transport (`aws:SecureTransport: false` deny statement covering S3 actions); classic ELBs must have only SSL/HTTPS listeners; ALBs/NLBs (`aws:elbv2:loadbalancersv2`) must use HTTPS/TLS listeners or HTTP-to-HTTPS redirects; API Gateway REST APIs must have client certificates enabled on their stages; OpenSearch domains must have node-to-node encryption. For integrity, CloudTrail trails with `log_file_validation_enabled` count as the AWS mechanism (one validating trail suffices). Note: the Prowler PR maps no checks to this KSI on any provider, so there is no Prowler cross-check to cite.
+Per-resource authenticity signals: S3 bucket policies must deny insecure transport (`aws:SecureTransport: false` deny statement covering S3 actions); classic ELBs must have only SSL/HTTPS listeners; ALBs/NLBs (`aws:elbv2:loadbalancersv2`) must use HTTPS/TLS listeners or HTTP-to-HTTPS redirects; API Gateway REST APIs must have client certificates enabled on their stages; OpenSearch domains must have node-to-node encryption. For integrity, CloudTrail trails with `log_file_validation_enabled` count as the AWS mechanism (one validating trail suffices).
 
 ## Implementation: Azure
 
@@ -68,4 +68,3 @@ Boundera evaluates KSI-SVC-VCM per endpoint: `aws:s3_buckets`, `aws:elb`, `aws:e
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.SVC.indicators["KSI-SVC-VCM"]`)
 - NIST SP 800-53 Rev 5: SC-23, SI-7(1)
-- Prowler FedRAMP 20x mappings: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

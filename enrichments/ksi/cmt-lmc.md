@@ -37,23 +37,23 @@ The most common way CSPs fail this one: the logging half exists but the monitori
 
 Three signals cover the capture-record-notify chain on AWS. Each is evaluated per resource; AWS is covered once at least one of its resources passes.
 
-- **CloudTrail** (`aws:cloudtrail`) — every trail must have logging enabled **and** be multi-region. A single-region trail fails: change events outside its home region are never captured. Independently checkable via Prowler `cloudtrail_multi_region_enabled`.
-- **AWS Config** (`aws:config`) — every configuration recorder must be actively recording. A recorder that exists but is stopped fails: API-call logging alone does not prove configuration-state changes are captured. Cf. Prowler `config_recorder_all_regions_enabled`.
-- **CloudWatch alarms** (`aws:cloudwatch_alarms`) — every metric alarm must have actions enabled **and** at least one alarm action attached (an SNS topic or similar). An alarm with an empty action list fails: change events would trigger no notification. Cf. Prowler's change-alarm checks such as `cloudwatch_changes_to_vpcs_alarm_configured` and `cloudwatch_log_metric_filter_security_group_changes`.
+- **CloudTrail** (`aws:cloudtrail`) — every trail must have logging enabled **and** be multi-region. A single-region trail fails: change events outside its home region are never captured.
+- **AWS Config** (`aws:config`) — every configuration recorder must be actively recording. A recorder that exists but is stopped fails: API-call logging alone does not prove configuration-state changes are captured.
+- **CloudWatch alarms** (`aws:cloudwatch_alarms`) — every metric alarm must have actions enabled **and** at least one alarm action attached (an SNS topic or similar). An alarm with an empty action list fails: change events would trigger no notification.
 
 ## Implementation: Azure
 
 Two assertions, both carried by the `azure:activity_log` signal over Azure Monitor resources.
 
-- **Diagnostic settings** (`azure:activity_log`) — each diagnostic setting must have at least one enabled log category, proving the Activity Log is actually being exported (to a Log Analytics workspace or storage account) rather than merely retained by default. Independently checkable via Prowler `monitor_diagnostic_settings_exists` and `monitor_diagnostic_setting_with_appropriate_categories`.
-- **Activity Log alert rules** (`azure:activity_log`) — each alert rule must be enabled. A disabled rule fails: change events would trigger no notification. Cf. Prowler's `monitor_alert_create_update_nsg` / `monitor_alert_delete_policy_assignment` family, which independently verify alert coverage for specific change types.
+- **Diagnostic settings** (`azure:activity_log`) — each diagnostic setting must have at least one enabled log category, proving the Activity Log is actually being exported (to a Log Analytics workspace or storage account) rather than merely retained by default.
+- **Activity Log alert rules** (`azure:activity_log`) — each alert rule must be enabled. A disabled rule fails: change events would trigger no notification.
 
 ## Implementation: GCP
 
 Three assertions across Cloud Logging and Cloud Monitoring.
 
-- **Logging sinks** (`gcp:audit_logs`) — each sink must have an export destination. A sink with no destination fails: audit logs are not being exported anywhere durable. Cf. Prowler `iam_audit_logs_enabled` for the upstream audit-log capture.
-- **Log-based metrics** (`gcp:audit_logs`) — each log-based metric must have a filter pattern, proving change events are actually being distilled into monitorable signals. Cf. Prowler `logging_log_metric_filter_and_alert_for_audit_configuration_changes_enabled` and its siblings for VPC, IAM, and bucket changes.
+- **Logging sinks** (`gcp:audit_logs`) — each sink must have an export destination. A sink with no destination fails: audit logs are not being exported anywhere durable.
+- **Log-based metrics** (`gcp:audit_logs`) — each log-based metric must have a filter pattern, proving change events are actually being distilled into monitorable signals.
 - **Alert policies** (`gcp:monitoring`) — each Cloud Monitoring alert policy must be enabled, closing the loop from captured change event to human notification.
 
 ## Evidence example
@@ -98,4 +98,3 @@ What still needs you: connect the connectors for every provider actually in your
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.CMT.indicators["KSI-CMT-LMC"]`)
 - NIST SP 800-53 Rev 5: AU-2, CM-3, CM-3(2), CM-4(2), CM-6, CM-8(3), MA-2
-- Prowler KSI mapping (prowler-cloud/prowler#11701, unmerged, aligned 2026.06.24.01)

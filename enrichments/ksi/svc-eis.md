@@ -42,8 +42,6 @@ The engine accepts any one of five AWS mechanisms as proof for the AWS group:
 - CloudWatch alarms with actions enabled and alarm actions attached (`aws:cloudwatch:metric_alarms`)
 - AWS Config recorders actively recording (`aws:config:recorders`)
 
-The Prowler PR's mapping for this KSI is sparse on AWS (a single Trusted Advisor subscription check), so the engine's coverage here is substantially broader than the Prowler cross-check.
-
 ## Implementation: Azure
 
 Any one of three Azure mechanisms covers the Azure group:
@@ -51,8 +49,6 @@ Any one of three Azure mechanisms covers the Azure group:
 - Microsoft Defender active for the subscription, or a non-zero secure score percentage (`azure:security:secure_scores`)
 - Diagnostic settings configured (`azure:monitor:diagnostics_settings`)
 - Azure Policy assignments enforcing — not `DoNotEnforce`, and not the placeholder row for a subscription with zero assignments (`azure:policy:policy_assigments`)
-
-The Prowler PR maps no Azure checks to this KSI.
 
 ## Implementation: GCP
 
@@ -62,8 +58,6 @@ Any one of four GCP mechanisms covers the GCP group:
 - Logging sinks with a destination configured (`gcp:logging:sinks`)
 - Monitoring alert policies enabled with filters (`gcp:monitoring:alert_policies`)
 - Cloud Asset Inventory enabled (`gcp:cloudasset:summary`)
-
-The Prowler PR maps no GCP checks to this KSI.
 
 ## Evidence example
 
@@ -90,4 +84,3 @@ Boundera scores KSI-SVC-EIS per provider: each cloud you connect must show at le
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.SVC.indicators["KSI-SVC-EIS"]`)
 - NIST SP 800-53 Rev 5: CM-7(1), CM-12(1), MA-2, PL-8, SC-7, SC-39, SI-2(2), SI-4, SR-10
-- Prowler FedRAMP 20x mappings: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

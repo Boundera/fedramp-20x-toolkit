@@ -37,19 +37,19 @@ The most common way CSPs fail it: CI exists but doesn't validate — a pipeline 
 
 Two post-deploy signals prove that validation keeps running after changes ship.
 
-- **SSM Patch Manager** (`aws:ssm_patch_compliance`) — every managed instance must be patch-compliant: no missing critical or security patches, no failed patch operations, managed by a patch baseline. Scored per instance — one non-compliant instance is a listed failure. When no instances are managed at all, the evidence is an explicit failing row with a reason, so the KSI does not false-pass on an unscanned environment. Independently checkable via Prowler `ssm_managed_compliant_patching`.
+- **SSM Patch Manager** (`aws:ssm_patch_compliance`) — every managed instance must be patch-compliant: no missing critical or security patches, no failed patch operations, managed by a patch baseline. Scored per instance — one non-compliant instance is a listed failure. When no instances are managed at all, the evidence is an explicit failing row with a reason, so the KSI does not false-pass on an unscanned environment.
 - **Inspector v2** (`aws:inspector`) — satisfied by any one region where Inspector is enabled **and** actually covering more than zero resources. Enabled-but-covering-nothing fails. The evidence reports enabled scan types and active finding counts (critical/high), proving post-deploy CVE detection is live — CI tests catch issues before merge; Inspector catches vulnerabilities introduced into running resources after.
 
 ## Implementation: Azure
 
-Two signals prove continuous post-deploy assessment. Note: Prowler's Azure mapping for this KSI in #11701 (`defender_assessments_vm_endpoint_protection_installed`) does not correspond to either of the engine's signals — treat it as a mapping gap, not an independent cross-check.
+Two signals prove continuous post-deploy assessment.
 
 - **Defender for Cloud secure score** (`azure:defender_secure_score`) — every subscription must have an active Defender secure score. An unavailable score fails: it means the Defender assessment baseline is not running for that subscription. The evidence records the current/max score and percentage as continuous posture measurement.
 - **VM Guest Configuration** (`azure:vm_guest_config`) — every VM with a Guest Configuration assignment must report Compliant. NonCompliant, NotAssigned, or missing assignments fail: managed configuration drift is not being detected and remediated on that VM.
 
 ## Implementation: GCP
 
-One signal. Note: Prowler's GCP mapping for this KSI in #11701 is empty — there is no independent Prowler cross-check on GCP.
+One signal.
 
 - **Cloud Asset Inventory** (`gcp:cloudasset`) — satisfied by any one project where Cloud Asset Inventory is enabled **and** tracking more than zero assets. Enabled-but-tracking-nothing fails. This proves automated component-inventory updates: every resource change in the project is captured, the automation CM-8(1) asks for.
 
@@ -84,4 +84,3 @@ What still needs you: connect your SCM and cloud connectors, put real test comma
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.CMT.indicators["KSI-CMT-VTD"]`)
 - NIST SP 800-53 Rev 5: CM-3, CM-3(2), CM-4(2), SI-2
-- Prowler KSI mapping (prowler-cloud/prowler#11701, unmerged, aligned 2026.06.24.01)
