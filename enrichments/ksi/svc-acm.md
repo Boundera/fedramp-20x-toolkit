@@ -33,15 +33,15 @@ The most common failure: the IaC repo exists, but nothing at runtime is recordin
 
 ## Implementation: AWS
 
-Boundera's engine inspects AWS Config recorders (`aws:config:recorders`) and passes when a recorder is actively recording (`recording` is true). A recorder that exists but is stopped fails with an explicit "automated config management disabled" reason. Independently checkable via Prowler's `config_recorder_all_regions_enabled`; the same PR also maps `ec2_instance_managed_by_ssm` and `ssm_managed_compliant_patching` to this KSI for AWS.
+Boundera's engine inspects AWS Config recorders (`aws:config:recorders`) and passes when a recorder is actively recording (`recording` is true). A recorder that exists but is stopped fails with an explicit "automated config management disabled" reason.
 
 ## Implementation: Azure
 
-The engine inspects Azure Policy assignments (`azure:policy:policy_assigments`) and passes when an assignment's `enforcement_mode` is set to enforce (anything other than empty or `DoNotEnforce`). A subscription with zero assignments produces a placeholder `no-policy-assignments` row, which fails. Note: the Prowler PR's Azure mapping for this KSI does not cover Azure Policy, so there is no equivalent Prowler check to cite here.
+The engine inspects Azure Policy assignments (`azure:policy:policy_assigments`) and passes when an assignment's `enforcement_mode` is set to enforce (anything other than empty or `DoNotEnforce`). A subscription with zero assignments produces a placeholder `no-policy-assignments` row, which fails.
 
 ## Implementation: GCP
 
-The engine inspects the Cloud Asset Inventory summary (`gcp:cloudasset:summary`) and passes when `cai_enabled` is true for the project — CAI provides the configuration tracking that AWS Config and Azure Policy provide on the other clouds. The Prowler PR maps no GCP checks to this KSI, so there is no Prowler cross-check for GCP.
+The engine inspects the Cloud Asset Inventory summary (`gcp:cloudasset:summary`) and passes when `cai_enabled` is true for the project — CAI provides the configuration tracking that AWS Config and Azure Policy provide on the other clouds.
 
 ## Evidence example
 
@@ -72,4 +72,3 @@ Boundera evaluates KSI-SVC-ACM automatically across every source you connect: SC
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.SVC.indicators["KSI-SVC-ACM"]`)
 - NIST SP 800-53 Rev 5: AC-2(4), CM-2, CM-2(2), CM-2(3), CM-6, CM-7(1), PL-9, PL-10, SA-5, SI-5, SR-10
-- Prowler FedRAMP 20x mappings: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

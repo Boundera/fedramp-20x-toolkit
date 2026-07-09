@@ -34,12 +34,10 @@ Every assertion here is scored per resource — one wide-open rule or one HTTP l
 
 ## Implementation: AWS
 
-- **Security groups** — no inbound rule allowing all ports: protocol `-1` or a `0–65535` port range fails (the engine parses both PascalCase Prowler output and snake_case rules).
+- **Security groups** — no inbound rule allowing all ports: protocol `-1` or a `0–65535` port range fails (the engine parses both PascalCase and snake_case rule formats).
 - **ELBv2** — every listener uses an encrypted protocol; any `HTTP` listener fails the load balancer. A load balancer with no listeners passes (nothing to protect).
 - **S3** — two assertions per bucket: the bucket policy contains a `Deny` statement on `aws:SecureTransport: false` (a bucket with no policy at all fails — no enforcement), and all four Block Public Access settings are enabled.
 - **VPC** — flow logs enabled per VPC.
-
-Independently checkable via the upstream Prowler 20x mapping: `eks_cluster_network_policy_enabled`, `elbv2_waf_acl_attached`.
 
 ## Implementation: Azure
 
@@ -47,15 +45,11 @@ Independently checkable via the upstream Prowler 20x mapping: `eks_cluster_netwo
 - **App Service** — two assertions per app: HTTPS-only enforced, and minimum TLS version at least 1.2 (read from the app's configuration).
 - **Storage accounts** — three assertions per account: HTTPS-only traffic enforced, minimum TLS version at least `TLS1_2`, and public blob access not allowed.
 
-Independently checkable via the upstream Prowler 20x mapping: `network_flow_log_captured_sent`, `network_watcher_enabled`, `aks_network_policy_enabled`, `network_bastion_host_exists`.
-
 ## Implementation: GCP
 
 - **Firewall rules** — no rule allowing all protocols or all ports. Note the engine's strictness here: an `allowed` entry with `ip_protocol: all`, or one that lists no ports at all, is treated as all-ports and fails.
 - **Cloud SQL** — SSL required per instance.
 - **Cloud Storage** — uniform bucket-level access per bucket (disables object-level public ACLs).
-
-Independently checkable via the upstream Prowler 20x mapping: `compute_subnet_flow_logs_enabled`, `compute_network_dns_logging_enabled`, `compute_loadbalancer_logging_enabled`.
 
 ## Evidence example
 
@@ -90,4 +84,3 @@ Boundera evaluates KSI-CNA-ULN per resource across all three clouds — `aws:sec
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.CNA.indicators["KSI-CNA-ULN"]`)
 - NIST SP 800-53 Rev 5: AC-12, AC-17(3), CA-9, SC-4, SC-7, SC-7(7), SC-8, SC-10
-- Prowler 20x KSI mapping: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

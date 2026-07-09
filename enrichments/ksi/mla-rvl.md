@@ -41,8 +41,6 @@ A passing evaluation contains three per-resource signals (no manual-evidence slo
 - `crowdstrike:detections` — each detection has been triaged past `new` status, **and** any detection with `critical` or `high` severity also has a closed timestamp (assertion `crowdstrike_detections`). Untriaged or unresolved high-severity detections fail.
 - `servicenow:incidents` — each incident has moved beyond the New state (state `1`/`new` fails) — someone reviewed and progressed it (assertion `servicenow_incidents`).
 
-Upstream Prowler mapping context: prowler-cloud/prowler#11701 maps per-service logging-enablement checks to this KSI — e.g. `vpc_flow_logs_enabled` (AWS), `sqlserver_auditing_enabled` (Azure), `cloudsql_instance_postgres_log_connections_flag` (GCP). Those prove reviewable logs exist; the signals above prove the review happens. Strong evidence packages show both.
-
 ## Common gaps
 
 1. **Receiver-less notification policies.** The alert rule fires, the notification policy matches, and the alert goes nowhere — a routing tree edited during an org change and never re-pointed at a contact.
@@ -61,4 +59,3 @@ Setup on your side: connect Grafana, CrowdStrike, and ServiceNow (whichever of t
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` → `KSI.MLA.indicators["KSI-MLA-RVL"]`
 - NIST SP 800-53 Rev 5: AC-2(4), AC-6(9), AU-2, AU-6, AU-6(1), SI-4, SI-4(4)
-- Prowler KSI mapping: prowler-cloud/prowler#11701 (checks cited above)

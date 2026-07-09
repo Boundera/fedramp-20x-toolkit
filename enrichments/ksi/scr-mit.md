@@ -52,12 +52,6 @@ enabled but subscribed to nothing fails with a "supply chain vulnerability
 monitoring gap." This is an any-pass group: one qualifying hub in the
 connected account satisfies it.
 
-On the container supply chain side, the same posture is independently
-checkable via Prowler checks such as
-`ecr_registry_scan_images_on_push_enabled` and
-`ecr_repositories_scan_vulnerabilities_in_latest_image` (image scanning on
-your ECR registries).
-
 ## Implementation: Azure
 
 The Azure assertion is the `azure:defender_secure_score` signal. It reads
@@ -66,19 +60,12 @@ and passes when `defender_active` is true — i.e., Microsoft Defender for
 Cloud is actually turned on for the subscription, not just present. Any-pass:
 one subscription with Defender active satisfies the group.
 
-Independently checkable via Prowler checks
-`defender_container_images_scan_enabled` and
-`defender_container_images_resolved_vulnerabilities`.
-
 ## Implementation: GCP
 
 The GCP assertion is the `gcp:scc` signal. It reads the Security Command
 Center summary for each project (`gcp:scc:summary`) and passes when
 `scc_enabled` is true. Any-pass: one project with SCC enabled satisfies the
 group.
-
-Independently checkable via Prowler checks
-`artifacts_container_analysis_enabled` and `gcr_container_scanning_enabled`.
 
 ## Evidence example
 
@@ -152,5 +139,3 @@ score your real SBOMs and open scanner alerts resource-by-resource.
   (`KSI.SCR.indicators["KSI-SCR-MIT"]`)
 - NIST SP 800-53 Rev 5: AC-20, RA-3(1), SA-9, SA-10, SA-11, SA-15(3),
   SA-22, SI-7(1), SR-5, SR-6, CA-7(4), SC-18
-- Prowler KSI mapping (prowler-cloud/prowler#11701, unmerged): AWS ECR,
-  Azure Defender, and GCP container-analysis checks cited above

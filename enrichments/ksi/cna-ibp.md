@@ -49,8 +49,6 @@ Service configurations the engine inspects:
 - **VPC** — flow logs enabled.
 - **Lambda** — no function on a deprecated runtime (the engine maintains an explicit end-of-life list including `python2.7`–`python3.7`, `nodejs10.x`–`nodejs14.x`, `dotnetcore2.1`–`dotnet5.0`, `ruby2.5`/`ruby2.7`, `java8`, `go1.x`).
 
-Independently checkable via the upstream Prowler 20x mapping: `eks_cluster_uses_a_supported_version`.
-
 ## Implementation: Azure
 
 Tool presence:
@@ -67,8 +65,6 @@ Service configurations the engine inspects:
 - **AKS** — Kubernetes RBAC enabled.
 - **Virtual machines** — Trusted Launch secure boot enabled.
 
-Independently checkable via the upstream Prowler 20x mapping: `keyvault_private_endpoints`, `cosmosdb_account_use_private_endpoints`.
-
 ## Implementation: GCP
 
 Tool presence:
@@ -83,8 +79,6 @@ Service configurations the engine inspects:
 - **GKE** — private cluster (private endpoint enabled).
 - **Cloud Storage** — uniform bucket-level access.
 - **Compute Engine** — interactive serial port access disabled (the engine parses instance metadata for `serial-port-enable`).
-
-Independently checkable via the upstream Prowler 20x mapping: `gke_cluster_no_default_service_account`.
 
 ## Evidence example
 
@@ -112,4 +106,3 @@ Boundera evaluates KSI-CNA-IBP automatically across all three clouds — roughly
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.CNA.indicators["KSI-CNA-IBP"]`)
 - NIST SP 800-53 Rev 5: AC-17(3), CM-2, PL-10
-- Prowler 20x KSI mapping: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

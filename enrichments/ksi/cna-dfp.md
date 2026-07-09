@@ -37,20 +37,14 @@ The most common way CSPs fail this one: the environment was built by hand in the
 - **AWS Config** — the engine checks that at least one Config recorder has `recording: true`. A recorder that exists but is stopped fails: baseline configuration drift is not being tracked.
 - **Amazon GuardDuty** — at least one detector must be enabled in the account (both the account-level flag and the detector status are checked). This is the SI-3 malicious-code-detection leg.
 
-Independently checkable via the upstream Prowler 20x mapping: `ec2_instance_imdsv2_enabled`, `ec2_instance_older_than_specific_days`.
-
 ## Implementation: Azure
 
 - **Azure Policy** — at least one policy assignment with `enforcementMode: Default`. Assignments in `DoNotEnforce` mode fail: the baseline exists but is not actively enforced.
 - **Microsoft Defender for Cloud** — Defender must be active on the subscription (the engine reads the secure-score payload's active flag). This covers the malicious-code-protection leg.
 
-Independently checkable via the upstream Prowler 20x mapping: `containerregistry_uses_private_link`.
-
 ## Implementation: GCP
 
 - **Security Command Center** — SCC must be enabled on the project. In the engine, one SCC signal covers both legs for GCP: baseline configuration scanning and threat detection.
-
-Independently checkable via the upstream Prowler 20x mapping: `cloudstorage_bucket_uniform_bucket_level_access`, `compute_network_not_legacy`.
 
 ## Evidence example
 
@@ -82,4 +76,3 @@ Boundera evaluates KSI-CNA-DFP automatically across three evidence layers: IaC p
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.CNA.indicators["KSI-CNA-DFP"]`)
 - NIST SP 800-53 Rev 5: CM-2, SI-3
-- Prowler 20x KSI mapping: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

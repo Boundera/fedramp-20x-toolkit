@@ -32,17 +32,17 @@ Scoring is per-resource: one load balancer with a plain-HTTP listener or one une
 
 ## Implementation: AWS
 
-In transit, the engine checks: application load balancers (`aws:elbv2:loadbalancersv2`, filtered to ALBs — network load balancers are excluded from this signal) for HTTPS/TLS listeners or an HTTP-to-HTTPS redirect; S3 bucket policies for a `Deny` statement on insecure transport (`aws:SecureTransport: false`); Redshift `require_ssl`; ElastiCache transit encryption; and OpenSearch `enforce_https`. At rest: S3 default encryption, RDS storage encryption, EFS encryption, OpenSearch encryption at rest, DynamoDB KMS-CMK encryption, CloudTrail KMS encryption, and Redshift and ElastiCache encryption. Independently checkable via Prowler's `elbv2_ssl_listeners` and `s3_bucket_secure_transport_policy`, which this KSI's AWS transport assertions mirror.
+In transit, the engine checks: application load balancers (`aws:elbv2:loadbalancersv2`, filtered to ALBs — network load balancers are excluded from this signal) for HTTPS/TLS listeners or an HTTP-to-HTTPS redirect; S3 bucket policies for a `Deny` statement on insecure transport (`aws:SecureTransport: false`); Redshift `require_ssl`; ElastiCache transit encryption; and OpenSearch `enforce_https`. At rest: S3 default encryption, RDS storage encryption, EFS encryption, OpenSearch encryption at rest, DynamoDB KMS-CMK encryption, CloudTrail KMS encryption, and Redshift and ElastiCache encryption.
 
 Per the engine's own notes, EBS volume and CloudWatch-log at-rest checks, plus CloudFront/classic-ELB/API-Gateway transport checks, are deferred until the connector emits those fields — the engine does not pretend to cover them.
 
 ## Implementation: Azure
 
-In transit: App Services must redirect HTTP to HTTPS (`https_only`), enforce minimum TLS 1.2, and (as a separate assertion) require client certificates; storage accounts must require secure transfer and minimum TLS 1.2; PostgreSQL flexible servers must enforce SSL (`require_secure_transport` ON); MySQL flexible servers must require secure transport and TLS 1.2+; SQL Server must enforce a minimal TLS version of 1.2+. At rest: storage accounts must have infrastructure (double) encryption enabled — standard service-side encryption alone does not pass that assertion. Independently checkable via Prowler's `app_minimum_tls_version_12`, `storage_secure_transfer_required_is_enabled`, and `postgresql_flexible_server_enforce_ssl_enabled`.
+In transit: App Services must redirect HTTP to HTTPS (`https_only`), enforce minimum TLS 1.2, and (as a separate assertion) require client certificates; storage accounts must require secure transfer and minimum TLS 1.2; PostgreSQL flexible servers must enforce SSL (`require_secure_transport` ON); MySQL flexible servers must require secure transport and TLS 1.2+; SQL Server must enforce a minimal TLS version of 1.2+. At rest: storage accounts must have infrastructure (double) encryption enabled — standard service-side encryption alone does not pass that assertion.
 
 ## Implementation: GCP
 
-In transit: Cloud SQL instances (`gcp:cloudsql:instances`) must require SSL — `ssl_mode` of `ALLOW_UNENCRYPTED_AND_ENCRYPTED` fails, and when the mode is unspecified the engine falls back to the `require_ssl` flag. At rest: BigQuery datasets must be encrypted with a customer-managed key (`cmk_encryption`). This is the only GCP at-rest field the vendored Prowler models expose; Cloud Storage and Cloud SQL storage are Google-default-encrypted with no CMEK field collected, so the engine does not check them rather than fake a result. Independently checkable via Prowler's `cloudsql_instance_ssl_connections`.
+In transit: Cloud SQL instances (`gcp:cloudsql:instances`) must require SSL — `ssl_mode` of `ALLOW_UNENCRYPTED_AND_ENCRYPTED` fails, and when the mode is unspecified the engine falls back to the `require_ssl` flag. At rest: BigQuery datasets must be encrypted with a customer-managed key (`cmk_encryption`). This is the only GCP at-rest field the collected connector data exposes; Cloud Storage and Cloud SQL storage are Google-default-encrypted with no CMEK field collected, so the engine does not check them rather than fake a result.
 
 ## Evidence example
 
@@ -69,4 +69,3 @@ Boundera evaluates KSI-SVC-SIN across roughly two dozen assertions spanning `aws
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.SVC.indicators["KSI-SVC-SIN"]`)
 - NIST SP 800-53 Rev 5: AC-1, AC-17(2), CP-9(8), SC-8, SC-8(1), SC-13, SC-20, SC-21, SC-22, SC-23, SC-28, SC-28(1)
-- Prowler FedRAMP 20x mappings: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)

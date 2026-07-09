@@ -39,18 +39,14 @@ The most common failure: "MFA is on" but every enrolled factor is phishable — 
 - **Credential report** — any user with `password_enabled=true` must have `mfa_active=true`; programmatic-only users (no console password) pass this assertion, since they are covered by KSI-IAM-SNU instead.
 - **IAM users** — console-access users must have at least one MFA device enrolled; users without console access are exempt.
 
-Independently checkable via Prowler: `iam_password_policy_minimum_length_14`, `iam_user_mfa_enabled_console_access`, `iam_root_mfa_enabled`, `iam_user_hardware_mfa_enabled`.
-
 ## Implementation: Azure
 
 - **Security Defaults** — `isEnabled` must be true; this both fails as a per-resource finding when off and satisfies the tenant-wide-enforcement group when on.
 - **Conditional Access** — a policy passes when its state is enabled *and* its grant controls include MFA. One such policy is enough (any-pass): the engine looks for at least one enforced MFA path, not MFA in every policy.
 
-Independently checkable via Prowler: `entra_security_defaults_enabled`, `entra_privileged_user_has_mfa`, `entra_non_privileged_user_has_mfa`, `entra_conditional_access_policy_require_mfa_for_management_api`.
-
 ## Implementation: GCP
 
-Honest gap: Google Cloud exposes no native user-MFA signal — user MFA for GCP is enforced through Google Workspace, which is not currently a Boundera connector, so the engine cannot evaluate GCP user authentication for this KSI. The Prowler PR #11701 mapping agrees: it maps zero GCP checks to KSI-IAM-APM. If GCP is in your boundary, plan on Workspace-side evidence for your assessor.
+Honest gap: Google Cloud exposes no native user-MFA signal — user MFA for GCP is enforced through Google Workspace, which is not currently a Boundera connector, so the engine cannot evaluate GCP user authentication for this KSI. If GCP is in your boundary, plan on Workspace-side evidence for your assessor.
 
 ## Evidence example
 
@@ -83,4 +79,3 @@ Because 2026 folds MFA into APM, Boundera rebuilds this indicator as one merged 
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` → `KSI.IAM.indicators["KSI-IAM-APM"]`
 - NIST SP 800-53 Rev 5: AC-3, IA-5(1), IA-5(2), IA-5(6), IA-6, AC-2, IA-2, IA-2(1), IA-2(2), IA-2(8), IA-5, IA-8, SC-23
-- Prowler FedRAMP 20x mapping (prowler-cloud/prowler#11701, unmerged): per-provider check IDs cited above

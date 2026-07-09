@@ -36,19 +36,13 @@ The most common way CSPs fail it: a SIEM stood up before the assessment whose al
 
 For this KSI the engine has no AWS-native signal; AWS coverage arrives through the observability layer. Point a Grafana datasource of type `cloudwatch` at the account so CloudTrail/CloudWatch Logs data is queryable centrally — the engine recognizes it as a log/audit source (see Evidence below) and scores your alert rules over it.
 
-For the tamper-resistance and centralization posture on the AWS side, independently checkable via Prowler: `cloudtrail_cloudwatch_logging_enabled`, `cloudtrail_log_file_validation_enabled`, `cloudtrail_kms_encryption_enabled`, `cloudwatch_log_group_retention_policy_specific_days_enabled`.
-
 ## Implementation: Azure
 
 Azure is the one provider with a direct cloud signal here: the engine reads Azure Monitor alert rules (`azure:monitor:alert_rules` evidence) and passes each rule only when `enabled` is true. A disabled alert rule fails — monitoring that has been switched off is the exact failure mode this KSI targets. A Grafana datasource of type `azuremonitor` additionally counts as a recognized log/audit source.
 
-Independently checkable via Prowler: `keyvault_logging_enabled`.
-
 ## Implementation: GCP
 
 As with AWS, GCP coverage flows through the observability layer: a Grafana datasource of type `stackdriver` (Google Cloud Monitoring/Logging) makes GCP audit data part of your centralized view, and the engine's alert-rule signal covers rules built on it.
-
-Independently checkable via Prowler: `iam_audit_logs_enabled`, `logging_sink_created`, `cloudstorage_bucket_log_retention_policy_lock`.
 
 ## Evidence example
 
@@ -78,4 +72,3 @@ Setup on your side: connect Grafana (and Azure, if in scope) so the engine can s
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` → `KSI.MLA.indicators["KSI-MLA-OSM"]`
 - NIST SP 800-53 Rev 5: AC-17(1), AC-20(1), AU-2, AU-3, AU-3(1), AU-4, AU-5, AU-6(1), AU-6(3), AU-7, AU-7(1), AU-8, AU-9, AU-11, IR-4(1), SI-4(2), SI-4(4), SI-7(7)
-- Prowler KSI mapping: prowler-cloud/prowler#11701 (checks cited above)

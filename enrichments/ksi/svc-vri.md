@@ -34,7 +34,7 @@ SCM coverage is GitHub and GitLab; the engine has no Bitbucket SBOM or vulnerabi
 
 ## Implementation: AWS
 
-CloudTrail is the cryptographic anchor: trails (`aws:cloudtrail:trails`) pass when `log_file_validation_enabled` is true and the trail is actively logging. Log-file validation delivers SHA-256 digest files that make any tampering with audit records detectable — this is the SC-13/SI-7 mechanism the engine verifies on AWS, scored as a single capability check (one validating trail suffices). Note: the Prowler PR's mapping for this KSI (an ACM certificate-expiration check on AWS, DNSSEC checks on GCP) does not overlap the engine's signals, so no Prowler cross-check is cited here.
+CloudTrail is the cryptographic anchor: trails (`aws:cloudtrail:trails`) pass when `log_file_validation_enabled` is true and the trail is actively logging. Log-file validation delivers SHA-256 digest files that make any tampering with audit records detectable — this is the SC-13/SI-7 mechanism the engine verifies on AWS, scored as a single capability check (one validating trail suffices).
 
 ## Implementation: Azure
 
@@ -69,4 +69,3 @@ Boundera evaluates KSI-SVC-VRI from `github:sbom`, `gitlab:sbom`, `github:depend
 
 - FRMR rule definition: `data/fedramp-rules/fedramp-consolidated-rules.json` (`KSI.SVC.indicators["KSI-SVC-VRI"]`)
 - NIST SP 800-53 Rev 5: CM-2(2), CM-8(3), SC-13, SC-23, SI-7, SI-7(1), SR-10
-- Prowler FedRAMP 20x mappings: prowler-cloud/prowler#11701 (unmerged, aligned 2026.06.24.01)
